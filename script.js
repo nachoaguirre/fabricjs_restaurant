@@ -9,7 +9,7 @@ const tableStroke = '#694d23'
 const tableStrokeWidth = 1
 const tableShadow = 'rgba(0, 0, 0, 0.4) 3px 3px 7px'
 
-const chairSize = 30
+const chairSize = 20
 const chairFill = 'rgba(67, 42, 4, 0.7)'
 const chairStroke = '#32230b'
 const chairShadow = 'rgba(0, 0, 0, 0.4) 3px 3px 7px'
@@ -23,11 +23,21 @@ const wallFill = 'rgba(136, 136, 136, 0.7)'
 const wallStroke = '#686868'
 const wallShadow = 'rgba(0, 0, 0, 0.4) 5px 5px 20px'
 
+let sendLinesToBack = () => { canvas.getObjects().map(o => { if (o.type === 'line') { canvas.sendToBack(o) } }) }
+
 let initCanvas = () => {
   if (canvas) { canvas.clear(); canvas.dispose(); }
 
   canvas = new fabric.Canvas('canvas')
-  canvas.backgroundColor = backgroundColor
+  canvas.backgroundColor = backgroundColor;
+
+  let canWidth = canvas.width;
+  let options = {stroke: lineStroke, selectable: false, type: 'line', excludeFromExport: true};
+  for (let i=0; i<(canWidth/grid); i++) {
+    const lineX = new fabric.Line([0, i*grid, canWidth, i*grid], options);
+    const lineY = new fabric.Line([i*grid, 0, i*grid, canWidth], options);
+    sendLinesToBack(); canvas.add(lineX); canvas.add(lineY);
+  }
 
   canvas.on('object:moving', function(e) {
     snapToGrid(e.target);
@@ -36,17 +46,18 @@ let initCanvas = () => {
 }
 initCanvas();
 
-let sendLinesToBack = () => { canvas.getObjects().map(o => { if (o.type === 'line') { canvas.sendToBack(o) } }) }
+
 
 let drawGrid = () => {
-  let canHeight = canvas.height;
-  for (let i=0; i<(canHeight/grid); i++) {
-    const lineX = new fabric.Line([0, i * grid, canHeight, i * grid], {stroke: lineStroke, selectable: false, type: 'line', excludeFromExport: true});
-    const lineY = new fabric.Line([i * grid, 0, i * grid, canHeight], {stroke: lineStroke, selectable: false, type: 'line', excludeFromExport: true});
+  let canWidth = canvas.width;
+  let options = {stroke: lineStroke, selectable: false, type: 'line', excludeFromExport: true};
+  for (let i=0; i<(canWidth/grid); i++) {
+    const lineX = new fabric.Line([0, i*grid, canWidth, i*grid], options);
+    const lineY = new fabric.Line([i*grid, 0, i*grid, canWidth], options);
     sendLinesToBack(); canvas.add(lineX); canvas.add(lineY);
   }
 }
-drawGrid();
+//drawGrid();
 
 let snapToGrid = (t) => { t.set({left: Math.round(t.left / (grid / 2)) * grid / 2, top: Math.round(t.top / (grid / 2)) * grid / 2}) }
 
@@ -129,8 +140,6 @@ let addTable = (id, left, top, chairs={}, width=0, height=0) => {
 
 function addChair(pos=null, tableWidth=0, top=0, left=0) {
   if (tableWidth === 0) { tableWidth = tableSize }
-  //if (pos !== null) { top = pos.top; right = pos.right; bottom = pos.bottom; left = pos.left; }
-
   if(pos == 'top') { top = tableWidth * -1 / 2; }
   if(pos == 'right') { left = tableWidth / 2; }
   if(pos == 'bottom') { top = tableWidth / 2; }
@@ -143,29 +152,59 @@ function addChair(pos=null, tableWidth=0, top=0, left=0) {
     originX: 'center', originY: 'center',
     type: 'chair', id: generateId(),
     lockScalingX: true, lockScalingY: true, lockRotation: true,
-    //strokeWidth: 2, centeredRotation: true, snapAngle: 45, selectable: true,
   })
   return o
 }
 
-addTable(101, 0, 0, {}, 80, 80);
 
-let chairs102 = {
-  right: [{ top: -20, left: 0 }, { top: 20, left: 0 }],
-  left: true,
-  top: false,
-  bottom: { left: 10 },
-  test: true
+// let chairs102 = {
+//   right: [{ top: -20, left: 0 }, { top: 20, left: 0 }],
+//   left: true,
+//   top: false,
+//   bottom: { left: 10 },
+//   test: true
+// }
+
+// addTable(102, 150, 0, chairs102, 80, 80);
+
+let chairsAll = {top: true, right: true, bottom: true, left: true}
+let chairsTRL = {top: true, right: true, left: true}
+let chairsRL = {right: true, left: true}
+let chairsTL_T_TR_R_RB_LB_L = {
+  top: true,
+  right: [
+    { top: -40, left: 0 },
+    { top: 0, left: 0 },
+    { top: 40, left: 0 },
+  ],
+  left: [
+    { top: -40, left: 0 },
+    { top: 0, left: 0 },
+    { top: 40, left: 0 },
+  ]
 }
-
-addTable(102, 150, 0, chairs102, 80, 80);
 
 let printCoords = (target) => { target.set('text', target.group.left + ', ' + target.group.top) }
 let printName = (target, name) => { target.set('text', name); canvas.renderAll(); }
 function generateId() { return Math.random().toString(36).substr(2, 8) }
 
+addTable(100, 0, 0, chairsAll);
+addTable(101, 120, 0, chairsAll);
+addTable(102, 240, 0, chairsAll);
+addTable(103, 360, 0, chairsAll);
+addTable(104, 480, 0, chairsTL_T_TR_R_RB_LB_L);
+
+addTable(109, 0, 140, chairsAll);
+addTable(108, 120, 140, chairsAll);
+addTable(107, 240, 140, chairsAll);
+addTable(106, 360, 140, chairsAll);
+addTable(105, 480, 140, chairsTRL);
+
+addTable(110, 0, 280, chairsRL);
+addTable(111, 120, 280, chairsRL);
+addTable(112, 240, 280, chairsRL);
+addTable(113, 360, 280, chairsRL);
+addTable(114, 480, 280, chairsRL);
 
 let json = canvas.toJSON();
-let jsonObjects = json.objects;
-
-console.log("json2", jsonObjects);
+console.log("json2", json.objects);
