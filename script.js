@@ -41,8 +41,8 @@ let sendLinesToBack = () => { canvas.getObjects().map(o => { if (o.type === 'lin
 let drawGrid = () => {
   let canHeight = canvas.height;
   for (let i=0; i<(canHeight/grid); i++) {
-    const lineX = new fabric.Line([0, i * grid, canHeight, i * grid], {stroke: lineStroke, selectable: false, type: 'line'});
-    const lineY = new fabric.Line([i * grid, 0, i * grid, canHeight], {stroke: lineStroke, selectable: false, type: 'line'});
+    const lineX = new fabric.Line([0, i * grid, canHeight, i * grid], {stroke: lineStroke, selectable: false, type: 'line', excludeFromExport: true});
+    const lineY = new fabric.Line([i * grid, 0, i * grid, canHeight], {stroke: lineStroke, selectable: false, type: 'line', excludeFromExport: true});
     sendLinesToBack(); canvas.add(lineX); canvas.add(lineY);
   }
 }
@@ -75,19 +75,6 @@ let addTable = (id, left, top, chairs={}, width=0, height=0) => {
 
   let groupItems = [table, text];
 
-  // if (chairs.top) { groupItems.unshift(addChair('top', width)) }
-  // if (chairs.right) { groupItems.unshift(addChair('right', width)) }
-  // if (chairs.bottom) { groupItems.unshift(addChair('bottom', width)) }
-  // if (chairs.left) { groupItems.unshift(addChair('left', width)) }
-
-  // let chairs3 = {
-  //   right: [{ top: -20, left: 0 }, { top: 20, left: 0 }],
-  //   left: true,
-  //   top: false,
-  //   bottom: { left: 10 },
-  //   test: true
-  // }
-
   Object.keys(chairs).forEach(pos => {
     if(pos !== 'top' && pos !== 'right' && pos !== 'bottom' && pos !== 'left') return;
 
@@ -109,23 +96,28 @@ let addTable = (id, left, top, chairs={}, width=0, height=0) => {
     }
   });
 
-  // let chairs2 = {
-  //   right: { top: 0},
-  //   left: true,
-  //   top: false
-  // }
+  const group = new fabric.Group(groupItems, {
+    left:left, top:top, centeredRotation:true, snapAngle:45, selectable:true, type:'table', id:id,
+    transparentCorners: false, cornerStyle: 'circle',
+    cornerColor: 'rgba(0, 0, 0, 0.5)',
+    //setControlVisible: 'mtr', hasRotatingPoint: false,
+    hasRotatingPoint: false,
+    //cornerSize: 10,
+    //padding: 5
+  })
+  //group.setControlVisible('mtr', false);
+  group.setControlsVisibility({
+    mtr: false,
+    tl: false,
+    tr: false,
+    br: false,
+    bl: false,
 
-  // Object.keys(chairs2).forEach(pos => {
-  //   let value = chairs2[pos];
-  //   //console.log(pos, value);
-  //   if(value) {
-  //     let top = value.top || 0;
-  //     let left = value.left || 0;
-  //     groupItems.unshift(addChair(pos, width, top, left))
-  //   }
-  // });
-
-  const group = new fabric.Group(groupItems, {left:left, top:top, centeredRotation:true, snapAngle:45, selectable:true, type:'table', id:id})
+    // mb: false,
+    // ml: false,
+    // mr: false,
+    // mt: false,
+  });
   canvas.add(group);
 
   group.on('moving', (e) => { printCoords(text) })
@@ -149,7 +141,8 @@ function addChair(pos=null, tableWidth=0, top=0, left=0) {
     width: chairSize, height: chairSize,
     fill: chairFill, stroke: chairStroke, shadow: chairShadow,
     originX: 'center', originY: 'center',
-    type: 'chair', id: generateId()
+    type: 'chair', id: generateId(),
+    lockScalingX: true, lockScalingY: true, lockRotation: true,
     //strokeWidth: 2, centeredRotation: true, snapAngle: 45, selectable: true,
   })
   return o
@@ -170,3 +163,9 @@ addTable(102, 150, 0, chairs102, 80, 80);
 let printCoords = (target) => { target.set('text', target.group.left + ', ' + target.group.top) }
 let printName = (target, name) => { target.set('text', name); canvas.renderAll(); }
 function generateId() { return Math.random().toString(36).substr(2, 8) }
+
+
+let json = canvas.toJSON();
+let jsonObjects = json.objects;
+
+console.log("json2", jsonObjects);
